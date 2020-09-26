@@ -84,23 +84,38 @@ func Test_findSumOfSquares(t *testing.T) {
 		ch   chan string
 	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name  string
+		args  args
+		want  string
+		want1 bool
 	}{
 		{
 			name: "Happy day",
 			args: args{
 				size: 4,
-				ch: make(chan string),
+				ch:   make(chan string),
 			},
-			want:"9 (3 * 3) + 16 (4 * 4) = 25 (5 * 5)",
+			want:  "9 (3 * 3) + 16 (4 * 4) = 25 (5 * 5)",
+			want1: true,
+		},
+		{
+
+			name: "Unhappy day",
+			args: args{
+				size: 2,
+				ch:   make(chan string),
+			},
+			want:  "",
+			want1: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			go findSumOfSquares(tt.args.size, tt.args.ch)
-			got := <- tt.args.ch
+			got, ok := <-tt.args.ch
+			if  ok != tt.want1 {
+				t.Errorf("findSumOfSquares() ok = %v, want %v", ok, tt.want1)
+			}
 			if got != tt.want {
 				t.Errorf("findSumOfSquares() got = %v, want %v", got, tt.want)
 			}
