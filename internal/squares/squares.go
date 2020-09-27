@@ -57,6 +57,7 @@ func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 }
 
 func (sq Squares) FindSumsOfSquares(ch chan string) {
+	defer close(ch)
 	for mi, m := range sq.sqs[:sq.size] {
 		// We start the inner loop from current outer loop index so that
 		// we don't find duplicate commutative sums
@@ -78,5 +79,4 @@ func (sq Squares) FindSumsOfSquares(ch chan string) {
 			}
 		}
 	}
-	close(ch)
 }
