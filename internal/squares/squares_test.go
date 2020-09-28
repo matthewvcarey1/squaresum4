@@ -66,6 +66,7 @@ func TestSquares_FindSumsOfSquares(t *testing.T) {
 	tests := []struct {
 		name string
 		sq   Squares
+		s1   Squareser
 		args args
 		want string
 		want1 bool
@@ -73,6 +74,7 @@ func TestSquares_FindSumsOfSquares(t *testing.T) {
 		{
 			name: "Happy day",
 			sq: new(4),
+			s1: New (4),
 			args: args{
 				ch: make(chan string, 10),
 			},
@@ -82,6 +84,7 @@ func TestSquares_FindSumsOfSquares(t *testing.T) {
 		{
 			name: "Unhappy day",
 			sq: new(2),
+			s1: new(2),
 			args: args{
 				ch:   make(chan string, 100),
 			},
