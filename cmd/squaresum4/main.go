@@ -26,7 +26,7 @@ func main() {
 	t1 := time.Now()
 	defer func() {
 		taken := time.Now().Sub(t1)
-		fmt.Println(taken)
+		fmt.Println("Time Taken",taken)
 	}()
 	size := 100
 	if len(os.Args) > 1 {

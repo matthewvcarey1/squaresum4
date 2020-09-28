@@ -32,17 +32,20 @@ func New(size int) Squareser {
 	return new(size)
 }
 
+// binChop calling sort.Search is slower than hand built binChop
+// but not by much 41 seconds against 38 seconds for a size of 10000
 func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 	set := sq.sqs[start:end]
 	offset := start
-	index := sort.Search(len(set), func(i int) bool {
+	length := len(set)
+	index := sort.Search(length, func(i int) bool {
 		return set[i] >= value
 	})
-	if index == len(set) || set[index] != value{
+	if index == length || set[index] != value {
 		return -1, false, -1
-	} 
-	return value, true, index + offset 
-	
+	}
+	return value, true, index + offset
+
 }
 
 func (sq Squares) FindSumsOfSquares(ch chan string) {
