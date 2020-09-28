@@ -1,6 +1,9 @@
 package squares
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type Squares struct {
 	sqs        []int64
@@ -32,28 +35,14 @@ func New(size int) Squareser {
 func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 	set := sq.sqs[start:end]
 	offset := start
-	for {
-		size := len(set)
-		// Not found case
-		if size < 1 {
-			return -1, false, -1
-		}
-		half := size >> 1
-		test := set[half]
-		// Found case
-		if test == value {
-			return test, true, offset + half
-		} else {
-			if test < value {
-				// Look in top half
-				set = set[half+1:]
-				offset = offset + half + 1
-			} else {
-				// Look in bottom half
-				set = set[:half]
-			}
-		}
-	}
+	index := sort.Search(len(set), func(i int) bool {
+		return set[i] >= value
+	})
+	if index == len(set) || set[index] != value{
+		return -1, false, -1
+	} 
+	return value, true, index + offset 
+	
 }
 
 func (sq Squares) FindSumsOfSquares(ch chan string) {

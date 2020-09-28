@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/matthewvcarey1/squaresum4/internal/squares"
 )
@@ -22,6 +23,11 @@ import (
 // The efficiency of this program should be Big O n^2 log n
 
 func main() {
+	t1 := time.Now()
+	defer func() {
+		taken := time.Now().Sub(t1)
+		fmt.Println(taken)
+	}()
 	size := 100
 	if len(os.Args) > 1 {
 		sizeStr := os.Args[1]
