@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/matthewvcarey1/squaresum4/internal/squares"
+	"github.com/matthewvcarey1/squaresum4/internal/pkg/squares"
 )
 
 // Find squares that are sums of two other squares by brute force without using
