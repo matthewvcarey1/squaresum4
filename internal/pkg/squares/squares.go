@@ -3,6 +3,8 @@ package squares
 import (
 	"fmt"
 	"runtime"
+	"sort"
+	"sync"
 )
 
 type Squares struct {
@@ -18,10 +20,9 @@ type Squareser interface {
 type binchopin struct {
 	m  int64
 	mi int
-	k int64
-	ki int 
+	k  int64
+	ki int
 }
-
 
 func new(size int) Squares {
 	arrsz := (size * 142) / 100
@@ -40,8 +41,23 @@ func New(size int) Squareser {
 	return new(size)
 }
 
+func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
+	set := sq.sqs[start:end]
+	offset := start
+	length := len(set)
+	index := sort.Search(length, func(i int) bool {
+		return set[i] >= value
+	})
+	if index == length || set[index] != value {
+		return -1, false, -1
+	}
+	return value, true, index + offset
+
+}
+
 // binChop calling sort.Search is slower than hand built binChop
 // by 4.8021043 seconds against 2.6710666 seconds for a size of 10000
+/*
 func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 	set := sq.sqs[start:end]
 	offset := start
@@ -68,25 +84,28 @@ func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 		}
 	}
 }
-func (sq Squares) runsearch(inch chan binchopin, ch chan string, stopchan chan bool){
+
+*/
+func (sq Squares) runsearch(wg *sync.WaitGroup, inch chan binchopin, ch chan string, stopchan chan bool) {
 	var indata binchopin
 	dostop := false
-	for{
-		dostop =<- stopchan
+	for {
+		dostop = <-stopchan
 		if dostop {
+			wg.Done()
 			return
-		} 
+		}
 		indata = <-inch
 		bottom := indata.mi + indata.ki                    // The index of the larger value
 		top := (((indata.mi + indata.ki + 1) * 142) / 100) // The result index if both values were the same
 		value := indata.m + indata.k
-	
+
 		res, ok, index := sq.binChop(value, bottom, top)
-		
+
 		if ok {
-		// roots are the index values plus 1 as we started the array at 1
+			// roots are the index values plus 1 as we started the array at 1
 			kroot := indata.mi + indata.ki + 1
-			mroot :=indata. mi + 1
+			mroot := indata.mi + 1
 			root := index + 1
 			ch <- fmt.Sprintf("%d (%d * %d) + %d (%d * %d) = %d (%d * %d)",
 				indata.m, mroot, mroot, indata.k, kroot, kroot, res, root, root)
@@ -96,30 +115,32 @@ func (sq Squares) runsearch(inch chan binchopin, ch chan string, stopchan chan b
 
 func (sq Squares) FindSumsOfSquares(ch chan string) {
 	defer close(ch)
-	inch := make (chan binchopin)
-	stopchan := make (chan bool)
+	var waitgroup sync.WaitGroup
+	inch := make(chan binchopin, 1000)
+	stopchan := make(chan bool, 1000)
 	numCPUs := runtime.NumCPU()
-	for i :=0; i<numCPUs;i++{
-		go sq.runsearch(inch,ch, stopchan)
+	for i := 0; i < numCPUs; i++ {
+		waitgroup.Add(1)
+		go sq.runsearch(&waitgroup, inch, ch, stopchan)
 	}
 	for mi, m := range sq.sqs[:sq.size] {
 		// We start the inner loop from current outer loop index so that
 		// we don't find duplicate commutative sums
 		// eg: 9 + 16 = 16 + 9 = 25
 		for ki, k := range sq.sqs[mi:sq.size] {
-			indata := binchopin{ 
-				m: m,
+			indata := binchopin{
+				m:  m,
 				mi: mi,
-				k: k,
+				k:  k,
 				ki: ki,
 			}
 			stopchan <- false
 			inch <- indata
 		}
-		
+
 	}
-	for i :=0; i<numCPUs; i++{
+	for i := 0; i < numCPUs; i++ {
 		stopchan <- true
 	}
-
+	waitgroup.Wait()
 }
