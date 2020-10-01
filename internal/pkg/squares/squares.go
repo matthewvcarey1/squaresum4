@@ -1,6 +1,9 @@
 package squares
 
-import "fmt"
+import (
+	"fmt"
+	"runtime"
+)
 
 type Squares struct {
 	sqs        []int64
@@ -11,6 +14,14 @@ type Squares struct {
 type Squareser interface {
 	FindSumsOfSquares(ch chan string)
 }
+
+type binchopin struct {
+	m  int64
+	mi int
+	k int64
+	ki int 
+}
+
 
 func new(size int) Squares {
 	arrsz := (size * 142) / 100
@@ -57,28 +68,58 @@ func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 		}
 	}
 }
+func (sq Squares) runsearch(inch chan binchopin, ch chan string, stopchan chan bool){
+	var indata binchopin
+	dostop := false
+	for{
+		dostop =<- stopchan
+		if dostop {
+			return
+		} 
+		indata = <-inch
+		bottom := indata.mi + indata.ki                    // The index of the larger value
+		top := (((indata.mi + indata.ki + 1) * 142) / 100) // The result index if both values were the same
+		value := indata.m + indata.k
+	
+		res, ok, index := sq.binChop(value, bottom, top)
+		
+		if ok {
+		// roots are the index values plus 1 as we started the array at 1
+			kroot := indata.mi + indata.ki + 1
+			mroot :=indata. mi + 1
+			root := index + 1
+			ch <- fmt.Sprintf("%d (%d * %d) + %d (%d * %d) = %d (%d * %d)",
+				indata.m, mroot, mroot, indata.k, kroot, kroot, res, root, root)
+		}
+	}
+}
 
 func (sq Squares) FindSumsOfSquares(ch chan string) {
 	defer close(ch)
+	inch := make (chan binchopin)
+	stopchan := make (chan bool)
+	numCPUs := runtime.NumCPU()
+	for i :=0; i<numCPUs;i++{
+		go sq.runsearch(inch,ch, stopchan)
+	}
 	for mi, m := range sq.sqs[:sq.size] {
 		// We start the inner loop from current outer loop index so that
 		// we don't find duplicate commutative sums
 		// eg: 9 + 16 = 16 + 9 = 25
 		for ki, k := range sq.sqs[mi:sq.size] {
-			// try to look up the sum of squares in the array of squares
-			// we are going to restrict the array to broadly possible indices
-			bottom := mi + ki                    // The index of the larger value
-			top := (((mi + ki + 1) * 142) / 100) // The result index if both values were the same
-			value := m + k
-			res, ok, index := sq.binChop(value, bottom, top)
-			if ok {
-				// roots are the index values plus 1 as we started the array at 1
-				kroot := mi + ki + 1
-				mroot := mi + 1
-				root := index + 1
-				ch <- fmt.Sprintf("%d (%d * %d) + %d (%d * %d) = %d (%d * %d)",
-					m, mroot, mroot, k, kroot, kroot, res, root, root)
+			indata := binchopin{ 
+				m: m,
+				mi: mi,
+				k: k,
+				ki: ki,
 			}
+			stopchan <- false
+			inch <- indata
 		}
+		
 	}
+	for i :=0; i<numCPUs; i++{
+		stopchan <- true
+	}
+
 }
