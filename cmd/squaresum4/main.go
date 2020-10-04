@@ -37,7 +37,7 @@ func main() {
 		}
 	}
 	sq := squares.New(size)
-	ch := make(chan string)
+	ch := make(chan string, 300)
 
 	go sq.FindSumsOfSquares(ch)
 	for msg := range ch {
