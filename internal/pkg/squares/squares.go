@@ -92,7 +92,7 @@ func (sq Squares) runsearch(worker int, inch chan binchopin, ch chan string, sto
 	var indata binchopin
 	defer wg.Done()
 	//defer func() {
-	//	println("stopping worker", worker)
+	//    println("stopping worker", worker)
 	//}()
 	for {
 		select {
@@ -101,17 +101,17 @@ func (sq Squares) runsearch(worker int, inch chan binchopin, ch chan string, sto
 			bottom := indata.mi + indata.ki                    // The index of the larger value
 			top := (((indata.mi + indata.ki + 1) * 142) / 100) // The result index if both values were the same
 			value := indata.m + indata.k
-			//		println("worker", worker, "looking for", value)
+			//println("worker", worker, "looking for", value)
 			res, ok, index := sq.binChop(value, bottom, top)
 
 			if ok {
-				//			println("worker", worker, "found", value)
+				//println("worker", worker, "found", value)
 				// roots are the index values plus 1 as we started the array at 1
 				kroot := indata.mi + indata.ki + 1
 				mroot := indata.mi + 1
 				root := index + 1
-				ch <- fmt.Sprintf("%d (%d * %d) + %d (%d * %d) = %d (%d * %d)",
-					indata.m, mroot, mroot, indata.k, kroot, kroot, res, root, root)
+				ch <- fmt.Sprintf("%d : %d (%d * %d) + %d (%d * %d) = %d (%d * %d)",
+					worker, indata.m, mroot, mroot, indata.k, kroot, kroot, res, root, root)
 			}
 		case <-stopchan:
 			// stop
@@ -126,6 +126,9 @@ func (sq Squares) FindSumsOfSquares(ch chan string) {
 	inch := make(chan binchopin, 1000)
 	stopchan := make(chan struct{})
 	var wg sync.WaitGroup
+	//runtime.GOMAXPROCS(1000)
+
+	//numCPUs := runtime.GOMAXPROCS(-1)
 	numCPUs := runtime.NumCPU()
 	for i := 0; i < numCPUs; i++ {
 		wg.Add(1)
