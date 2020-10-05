@@ -8,3 +8,11 @@ If invoked without a parameter it assumes that you want to look at the range 1 t
 ./squaresum <positive_number>
 
 It lists the square numbers found.
+
+## To build
+
+go build -o squaresum.exe ./cmd/squaresum4
+
+## To test
+
+go test .\...

@@ -12,7 +12,7 @@ func TestSquares_binChop(t *testing.T) {
 	}
 	tests := []struct {
 		name  string
-		sq    Squares
+		sq    *Squares
 		args  args
 		want  int64
 		want1 bool
@@ -65,7 +65,7 @@ func TestSquares_FindSumsOfSquares(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		sq   Squares
+		sq   *Squares
 		s1   Squareser
 		args args
 		want string
