@@ -25,13 +25,13 @@ type binchopin struct {
 	ki int
 }
 
-func new(size int) Squares {
+func new(size int) *Squares {
 	arrsz := (size * 142) / 100
 	sqs := make([]int64, arrsz)
 	for n := 1; n <= arrsz; n++ {
 		sqs[n-1] = int64(n) * int64(n)
 	}
-	return Squares{
+	return &Squares{
 		sqs:        sqs,
 		size:       size,
 		actualSize: arrsz,
@@ -44,7 +44,7 @@ func New(size int) Squareser {
 }
 
 /*
-func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
+func (sq *Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 	set := sq.sqs[start:end]
 	offset := start
 	length := len(set)
@@ -61,7 +61,7 @@ func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 // binChop calling sort.Search is slower than hand built binChop
 // by 4.8021043 seconds against 2.6710666 seconds for a size of 10000
 
-func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
+func (sq *Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 	set := sq.sqs[start:end]
 	offset := start
 	for {
@@ -88,7 +88,7 @@ func (sq Squares) binChop(value int64, start int, end int) (int64, bool, int) {
 	}
 }
 
-func (sq Squares) runsearch(worker int, inch chan binchopin, ch chan string, stopchan chan struct{}, wg *sync.WaitGroup) {
+func (sq *Squares) runsearch(worker int, inch chan binchopin, ch chan string, stopchan chan struct{}, wg *sync.WaitGroup) {
 	var indata binchopin
 	defer wg.Done()
 	//defer func() {
@@ -121,7 +121,7 @@ func (sq Squares) runsearch(worker int, inch chan binchopin, ch chan string, sto
 }
 
 // FindSumsOfSquares ...
-func (sq Squares) FindSumsOfSquares(ch chan string) {
+func (sq *Squares) FindSumsOfSquares(ch chan string) {
 	defer close(ch)
 	inch := make(chan binchopin, 1000)
 	stopchan := make(chan struct{})
